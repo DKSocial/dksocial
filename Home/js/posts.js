@@ -78,7 +78,7 @@ const initApp = () => {
       setupEventListeners();
       setupTweetActions(); // Inicializar eventos de ações dos tweets
     } else {
-      window.location.href = '/login';
+      window.location.href = '/Login/';
     }
   });
 };
@@ -95,7 +95,7 @@ const setupEventListeners = () => {
 
   // Logout
   document.querySelector('.logout-btn').addEventListener('click', () => {
-    auth.signOut().then(() => window.location.href = '/login');
+    auth.signOut().then(() => window.location.href = '/Login/');
   });
 
   // Preview de mídia
@@ -145,14 +145,15 @@ const postTweet = async () => {
       mediaUrls,
       hashtags,
       likes: 0,
+      likesUsers: [], // Lista de usuários que curtiram o tweet
       retweets: 0,
       comments: [],
       userId: currentUser.uid,
       username: userData.username || 'Usuário Anônimo',
-      profilePicture: userData.profilePicture || 'https://pfp.dksocial.shop/userblank.png',
+      profilePicture: userData.profilePicture || 'https://i.pinimg.com/736x/62/01/0d/62010d848b790a2336d1542fcda51789.jpg',
       verified: userData.verified === true, // Garantir que seja booleano
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    });    
 
     clearForm();
     showToast('Tweet postado com sucesso!');
@@ -191,7 +192,7 @@ const renderTweet = (tweet) => {
   tweetElement.className = 'tweet';
   tweetElement.innerHTML = `
     <div class="tweet__header">
-      <img src="${tweet.profilePicture || 'https://via.placeholder.com/50'}" 
+      <img src="${tweet.profilePicture || 'https://i.pinimg.com/736x/62/01/0d/62010d848b790a2336d1542fcda51789.jpg'}" 
            class="tweet__profile-pic" 
            alt="Foto do perfil">
            <a href="/Perfil/?user=${tweet.username}" class="tweet__username">${tweet.username}</a>
@@ -225,7 +226,6 @@ const renderTweet = (tweet) => {
   tweetsContainer.appendChild(tweetElement);
 };
 
-// Adicionar eventos para as ações dos tweets
 const setupTweetActions = () => {
   tweetsContainer.addEventListener('click', async (e) => {
     const actionButton = e.target.closest('[data-action]');
@@ -241,20 +241,47 @@ const setupTweetActions = () => {
 
       switch (action) {
         case 'like':
-          await tweetRef.update({
-            likes: tweetData.likes + 1
-          });
+          // Verificar se o usuário já curtiu
+          const userHasLiked = tweetData.likesUsers && tweetData.likesUsers.includes(currentUser.uid);
+          
+          if (userHasLiked) {
+            // Se já curtiu, subtrai 1 e remove o usuário da lista
+            await tweetRef.update({
+              likes: tweetData.likes - 1,
+              likesUsers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+            });
+          } else {
+            // Se não curtiu, adiciona 1 e adiciona o usuário na lista
+            await tweetRef.update({
+              likes: tweetData.likes + 1,
+              likesUsers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+            });
+          }
+
           break;
 
-        case 'retweet':
-          await tweetRef.update({
-            retweets: tweetData.retweets + 1
-          });
-          break;
-
-          case 'comment':
-            await openCommentsModal(tweetId); // Abrir a modal de comentários
+          case 'retweet':
+            const hasRetweeted = tweetData.isRetweetedByUser && tweetData.isRetweetedByUser.includes(currentUser.uid);
+          
+            if (hasRetweeted) {
+              // Remover repostagem
+              await tweetRef.update({
+                retweets: tweetData.retweets - 1,
+                isRetweetedByUser: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+              });
+            } else {
+              // Adicionar repostagem
+              await tweetRef.update({
+                retweets: tweetData.retweets + 1,
+                isRetweetedByUser: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+              });
+            }
             break;
+          
+
+        case 'comment':
+          await openCommentsModal(tweetId); // Abrir a modal de comentários
+          break;
 
         default:
           break;
@@ -267,6 +294,7 @@ const setupTweetActions = () => {
     }
   });
 };
+
 
 const parseContent = (content) => {
   return content
@@ -384,13 +412,7 @@ const openCommentsModal = async (tweetId) => {
   }
 };
 
-// Definindo o SVG para o ícone de verificação
-const verifiedIcon = `
-  <svg class="verified-icon" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="10" fill="none" stroke="#9b59b6" stroke-width="2" stroke-dasharray="4,4" />
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" fill="#9b59b6"/>
-  </svg>
-`;
+
 
 // Função para renderizar um comentário individualmente
 const renderComment = (comment, userData) => {
@@ -398,9 +420,8 @@ const renderComment = (comment, userData) => {
   commentElement.className = 'comment';
   commentElement.innerHTML = `
   <div class="comment__header">
-    <img src="${userData.profilePicture || 'https://via.placeholder.com/50'}" class="comment__profile-pic" alt="Foto do perfil">
+    <img src="${userData.profilePicture || 'https://i.pinimg.com/736x/62/01/0d/62010d848b790a2336d1542fcda51789.jpg'}" class="comment__profile-pic" alt="Foto do perfil">
     <span class="comment__username">${userData.username || 'Usuário Anônimo'}</span>
-    ${verifiedIcon} <!-- Aqui, o SVG do ícone de verificação é inserido -->
   </div>
   <div class="comment__content">${comment.comment}</div>
   <hr> <!-- Divisória entre comentários -->

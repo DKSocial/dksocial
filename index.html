@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DK</title>
+    <style>
+        /* Reset básico */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: black;
+        }
+
+        /* Container da tela de loading */
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Estilo do vídeo */
+        video {
+            max-width: 200px;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen">
+        <!-- Vídeo de loading -->
+        <video autoplay loop muted>
+            <source src="Animation\loading.mp4" type="video/mp4">
+            Seu navegador não suporta o elemento de vídeo.
+        </video>
+    </div>
+
+    <script>
+        // Função para verificar o status do setup no LocalStorage
+        function verificarSetup() {
+            // Verifica se o valor "setupConcluido" está no LocalStorage
+            const setupConcluido = localStorage.getItem("setupConcluido");
+
+            // Simula um tempo de carregamento (2 segundos)
+            setTimeout(() => {
+                if (setupConcluido === "true") {
+                    // Se o setup estiver concluído, redireciona para a página "home.html"
+                    window.location.href = "/Home/";
+                } else {
+                    // Se o setup não estiver concluído, redireciona para a página "setup.html"
+                    window.location.href = "/Login/";
+                }
+            }, 4000); // 4 segundos de simulação de carregamento
+        }
+
+        // Executa a função ao carregar a página
+        verificarSetup();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conta Suspensa</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Geral */
+    :root {
+      --background-color: #1a1a1a; /* Fundo escuro */
+      --text-color: #e0e0e0; /* Texto claro */
+      --principal-color: #6a1b9a; /* Roxo escuro para títulos e botões */
+      --hover-color: #8e24aa; /* Roxo mais vibrante no hover */
+      --border-color: #333333; /* Bordas escuras */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    body {
+      background-color: var(--background-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: left;
+      color: var(--text-color);
+    }
+
+    .banned-container {
+      max-width: 600px;
+      padding: 2rem;
+      background-color: #2a2a2a; /* Fundo do container escuro */
+      border: 1px solid var(--border-color);
+      border-radius: 15px;
+    }
+
+    .banned-container h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--principal-color); /* Roxo escuro para o título */
+    }
+
+    .banned-container p {
+      font-size: 1rem;
+      color: var(--text-color);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    .banned-container a {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: var(--principal-color); /* Roxo escuro para o botão */
+      color: var(--text-color);
+      text-decoration: none;
+      border-radius: 30px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .banned-container a:hover {
+      background-color: var(--hover-color); /* Roxo mais vibrante no hover */
+    }
+
+    .banned-container .note {
+      font-size: 0.875rem;
+      color: #8b98a5; /* Cinza claro para notas */
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="banned-container">
+    <h1>Conta Suspensa</h1>
+    <p>
+      Sua conta, <span id="username-placeholder">[Nome do Usuário]</span>, foi suspensa por violar nossas regras.
+    </p>
+    <p>
+      Especificamente, por:
+      <ul>
+        <li>Violar nossas regras contra evasão de suspensão.</li>
+      </ul>
+    </p>
+    <p>
+      Observe que, se você tentar contornar a suspensão criando novas contas, suspenderemos as novas contas.
+    </p>
+    <p>
+      Se deseja recorrer desta suspensão, entre em contato com nossa equipe de suporte.
+    </p>
+    <a href="mailto:suporte@dksocial.com">Entrar em contato</a>
+    <p class="note">
+      Se você tiver uma assinatura ativa do DK Social, ela não será cancelada automaticamente. Para cancelar qualquer assinatura, siga estas instruções.
+    </p>
+  </div>
+
+  <!-- Firebase SDK v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyA_d2rRI7GWGvrcGq4KuiZiVhWAKWAkFjQ",
+      authDomain: "dksocialbr.firebaseapp.com",
+      projectId: "dksocialbr",
+      storageBucket: "dksocialbr.appspot.com",
+      messagingSenderId: "920583441447",
+      appId: "1:920583441447:web:5a28bc09a21cbeaa679202",
+      measurementId: "G-WDP6ME7D1P"
+    };
+
+    // Inicializa o Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Verifica o estado de autenticação
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // Obtém as informações do usuário do Firestore
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          const username = userData.username || 'Usuário'; // Fallback caso o nome de usuário não exista
+
+          // Exibe o nome de usuário na mensagem de banimento
+          document.getElementById('username-placeholder').textContent = username;
+        }
+      } else {
+        // Se o usuário não estiver logado, redireciona para a página de login
+        window.location.href = '/Login/';
+      }
+    });
+  </script>
+</body>
+</html>

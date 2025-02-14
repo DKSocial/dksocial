@@ -101,6 +101,7 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
             } else {
                 localStorage.setItem('setupConcluido', "true");
                 alert('Login bem-sucedido!');
+                window.location.href = '/home/'; // Redirecionar para a página desejada
             }
         })
         .catch((error) => {

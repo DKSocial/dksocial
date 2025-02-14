@@ -1,0 +1,243 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1e1e1e; /* Fundo mais escuro para melhor contraste */
+    font-family: 'Montserrat', sans-serif;
+    color: #fff;
+}
+
+.container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: #1e1e1e; /* Fundo mais claro para o container */
+}
+
+.left, .right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.left {
+    background-color: #1e1e1e; /* Fundo mais claro para o lado esquerdo */
+}
+
+.right {
+    background-color: #1e1e1e; /* Fundo mais claro para o lado direito */
+    flex-direction: column;
+    padding: 40px; /* Mais espaço interno */
+}
+
+.logo {
+    width: 400px;
+    height: 400px;
+    background-color: #fff;
+    border-radius: 50%; /* Logo redondo */
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); /* Sombra sutil */
+}
+
+.right h1 {
+    font-size: 2.5em; /* Título maior */
+    margin-bottom: 30px; /* Mais espaço abaixo do título */
+    text-align: center;
+    color: #B39DDB; /* Cor do título */
+}
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 300px;
+    padding: 15px; /* Mais espaço interno */
+    margin: 15px 0; /* Mais espaço entre botões */
+    border: 1px solid #444; /* Borda mais clara */
+    border-radius: 25px; /* Bordas mais arredondadas */
+    cursor: pointer;
+    text-align: center;
+    color: #fff; /* Texto branco */
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Transição suave */
+}
+
+.button:hover {
+    background-color: #333; /* Cor de fundo ao passar o mouse */
+    transform: scale(1.05); /* Efeito de escala ao passar o mouse */
+}
+
+.button img {
+    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+}
+
+.button.google {
+    background-color: transparent; /* Cor do Google */
+}
+
+.button.github {
+    background-color: transparent; /* Cor do GitHub */
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 300px;
+    margin: 30px 0; /* Mais espaço ao redor do divisor */
+}
+
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #444; /* Linha mais clara */
+}
+
+.divider span {
+    margin: 0 10px;
+    color: #666; /* Cor do texto do divisor */
+}
+
+.link {
+    color: #B39DDB;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.3s ease; /* Transição suave */
+}
+
+.link:hover {
+    color: #c0a0c0; /* Cor ao passar o mouse */
+}
+
+.terms {
+    font-size: 0.8em;
+    color: #666;
+    text-align: center;
+    margin-top: 30px; /* Mais espaço acima dos termos */
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9); /* Fundo mais escuro */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #1e1e1e; /* Fundo mais claro */
+    padding: 30px; /* Mais espaço interno */
+    border: 1px solid #444; /* Borda mais clara */
+    width: 80%;
+    max-width: 500px;
+    color: #B39DDB;
+    border-radius: 15px; /* Bordas mais arredondadas */
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.7); /* Sombra mais intensa */
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 1.8em; /* Título maior */
+    text-align: center;
+    color: #B39DDB; /* Cor do título */
+}
+
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-content label {
+    margin: 15px 0 10px; /* Mais espaço ao redor dos labels */
+    width: 100%;
+    max-width: 400px;
+    color: #B39DDB; /* Cor dos labels */
+}
+
+.modal-content input {
+    padding: 12px; /* Mais espaço interno */
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #555;
+    border-radius: 8px; /* Bordas mais arredondadas */
+    background-color: #333;
+    color: #B39DDB;
+    transition: border-color 0.3s ease; /* Transição suave */
+}
+
+.modal-content input:focus {
+    border-color: #B39DDB; /* Cor da borda ao focar */
+}
+
+.modal-content button {
+    margin-top: 25px; /* Mais espaço acima do botão */
+    padding: 12px 24px; /* Mais espaço interno */
+    border: none;
+    border-radius: 8px; /* Bordas mais arredondadas */
+    background-color: #B39DDB;
+    color: #000;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease; /* Transição suave */
+}
+
+.modal-content button:hover {
+    background-color: #c0a0c0; /* Cor ao passar o mouse */
+}
+
+.close {
+    color: #B39DDB;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    transition: color 0.3s ease; /* Transição suave */
+}
+
+.close:hover,
+.close:focus {
+    color: #c0a0c0; /* Cor ao passar o mouse */
+    text-decoration: none;
+    cursor: pointer;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .left, .right {
+        width: 100%;
+        height: auto;
+    }
+
+    .left {
+        display: none; /* Esconde o elemento .left */
+    }
+
+    .right {
+        padding: 20px 10px;
+    }
+}
+

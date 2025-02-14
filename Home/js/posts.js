@@ -1,3 +1,4 @@
+
 const firebaseConfig = {
   apiKey: "AIzaSyA_d2rRI7GWGvrcGq4KuiZiVhWAKWAkFjQ",
   authDomain: "dksocialbr.firebaseapp.com",
@@ -468,6 +469,34 @@ document.querySelector('.close-modal').addEventListener('click', () => {
   commentsModal.style.display = 'none';
 });
 
+// Verifique se o usuário está logado
+auth.onAuthStateChanged((user) => {
+  if (user) {
+      // Usuário logado, verifique se está banido
+      const uid = user.uid;
+      db.collection('users').doc(uid).get()
+          .then((doc) => {
+              if (doc.exists) {
+                  const userData = doc.data();
+                  if (userData.banned === true) {
+                      // Usuário está banido, redirecione para outra página
+                      window.location.href = '/banned.html';
+                  } else {
+                      // Usuário não está banido, continue normalmente
+                      console.log('Usuário não está banido.');
+                  }
+              } else {
+                  console.log('Documento do usuário não encontrado.');
+              }
+          })
+          .catch((error) => {
+              console.error('Erro ao buscar dados do usuário:', error);
+          });
+  } else {
+      // Usuário não está logado, redirecione para a página de login
+      window.location.href = '/Login/';
+  }
+});
 
 // Inicializar aplicação
 document.addEventListener('DOMContentLoaded', initApp);

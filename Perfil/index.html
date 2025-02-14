@@ -324,6 +324,84 @@
                 margin: 20% auto; /* Ajusta a margem do modal em telas pequenas */
             }
         }
+
+      /* Estilos para o modal */
+.user-list-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Fundo escuro semi-transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Garante que o modal fique acima de outros elementos */
+}
+
+.user-list-modal-content {
+    background-color: var(--modal-background-color); /* Fundo do modal */
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px; /* Largura máxima do modal */
+    max-height: 80vh; /* Altura máxima do modal */
+    overflow-y: auto; /* Permite rolagem se o conteúdo for muito longo */
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra suave */
+    border: 1px solid var(--modal-border-color); /* Borda do modal */
+}
+
+.user-list-modal-content .close {
+    float: right;
+    cursor: pointer;
+    font-size: 24px;
+    color: var(--text-color); /* Cor do ícone de fechar */
+    transition: color 0.3s ease;
+}
+
+.user-list-modal-content .close:hover {
+    color: var(--hover-color); /* Cor do ícone de fechar no hover */
+}
+
+.user-list-modal-content h2 {
+    margin-top: 0;
+    color: var(--principal-color); /* Cor do título */
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.user-list-modal-content ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.user-list-modal-content ul li {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color); /* Borda entre os itens */
+    transition: background-color 0.3s ease;
+}
+
+.user-list-modal-content ul li:last-child {
+    border-bottom: none; /* Remove a borda do último item */
+}
+
+.user-list-modal-content ul li:hover {
+    background-color: var(--background-second-color); /* Cor de fundo no hover */
+}
+
+.user-list-modal-content ul li a {
+    text-decoration: none;
+    color: var(--link-color); /* Cor do link */
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.user-list-modal-content ul li a:hover {
+    color: var(--link-hover-color); /* Cor do link no hover */
+}
     </style>
 </head>
 <body>

@@ -102,11 +102,50 @@ function displayTweet(tweet) {
     tabContent.appendChild(tweetElement);
 }
 
-// Função para verificar se o usuário logado segue o perfil carregado
-async function checkIfUserFollows(userId) {
-    const userDoc = await db.collection('users').doc(userId).get();
-    const followers = userDoc.data().followers || [];
-    return followers.includes(currentUser.uid);
+// Função para deixar de seguir um usuário
+function unfollowUser(userId) {
+    db.collection('users').doc(userId).update({
+        followers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid), // Remove apenas o usuário logado
+        followersCount: firebase.firestore.FieldValue.increment(-1) // Decrementa o contador de seguidores
+    }).then(() => {
+        // Atualiza o contador de seguidores na interface
+        followerCount.textContent = parseInt(followerCount.textContent) - 1;
+
+        // Atualiza o contador de "seguindo" do usuário logado
+        db.collection('users').doc(currentUser.uid).update({
+            followingCount: firebase.firestore.FieldValue.increment(-1)
+        }).then(() => {
+            followingCount.textContent = parseInt(followingCount.textContent) - 1;
+
+            // Atualiza o botão para "Seguir"
+            updateFollowButton(false);
+        });
+    }).catch((error) => {
+        console.error("Erro ao deixar de seguir usuário:", error);
+    });
+}
+
+// Função para seguir um usuário
+function followUser(userId) {
+    db.collection('users').doc(userId).update({
+        followers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid), // Adiciona apenas o usuário logado
+        followersCount: firebase.firestore.FieldValue.increment(1) // Incrementa o contador de seguidores
+    }).then(() => {
+        // Atualiza o contador de seguidores na interface
+        followerCount.textContent = parseInt(followerCount.textContent) + 1;
+
+        // Atualiza o contador de "seguindo" do usuário logado
+        db.collection('users').doc(currentUser.uid).update({
+            followingCount: firebase.firestore.FieldValue.increment(1)
+        }).then(() => {
+            followingCount.textContent = parseInt(followingCount.textContent) + 1;
+
+            // Atualiza o botão para "Deixar de seguir"
+            updateFollowButton(true);
+        });
+    }).catch((error) => {
+        console.error("Erro ao seguir usuário:", error);
+    });
 }
 
 // Função para atualizar o botão de seguir/deixar de seguir
@@ -120,44 +159,11 @@ function updateFollowButton(isFollowing) {
     }
 }
 
-// Função para seguir um usuário
-function followUser(userId) {
-    db.collection('users').doc(userId).update({
-        followers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
-        followersCount: firebase.firestore.FieldValue.increment(1) // Incrementa o contador de seguidores
-    }).then(() => {
-        // Atualiza o contador de seguidores na interface
-        followerCount.textContent = parseInt(followerCount.textContent) + 1;
-
-        // Atualiza o contador de "seguindo" do usuário logado
-        db.collection('users').doc(currentUser.uid).update({
-            followingCount: firebase.firestore.FieldValue.increment(1)
-        }).then(() => {
-            followingCount.textContent = parseInt(followingCount.textContent) + 1;
-        });
-    }).catch((error) => {
-        console.error("Erro ao seguir usuário:", error);
-    });
-}
-
-// Função para deixar de seguir um usuário
-function unfollowUser(userId) {
-    db.collection('users').doc(userId).update({
-        followers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
-        followersCount: firebase.firestore.FieldValue.increment(-1) // Decrementa o contador de seguidores
-    }).then(() => {
-        // Atualiza o contador de seguidores na interface
-        followerCount.textContent = parseInt(followerCount.textContent) - 1;
-
-        // Atualiza o contador de "seguindo" do usuário logado
-        db.collection('users').doc(currentUser.uid).update({
-            followingCount: firebase.firestore.FieldValue.increment(-1)
-        }).then(() => {
-            followingCount.textContent = parseInt(followingCount.textContent) - 1;
-        });
-    }).catch((error) => {
-        console.error("Erro ao deixar de seguir usuário:", error);
-    });
+// Função para verificar se o usuário logado segue o perfil carregado
+async function checkIfUserFollows(userId) {
+    const userDoc = await db.collection('users').doc(userId).get();
+    const followers = userDoc.data().followers || [];
+    return followers.includes(currentUser.uid);
 }
 
 // Função para buscar o perfil do usuário pelo username
@@ -299,4 +305,95 @@ auth.onAuthStateChanged((user) => {
         // Usuário não está logado, redirecione para a página de login
         window.location.href = '/Login/';
     }
-  });
+});
+
+// Adiciona event listeners aos contadores
+followingCount.addEventListener('click', () => showUserList('following'));
+followerCount.addEventListener('click', () => showUserList('followers'));
+
+// Função para exibir a lista de seguidores ou de pessoas que o usuário segue
+async function showUserList(type) {
+    const userId = currentProfileUserId; // ID do perfil carregado
+
+    // Busca os dados do usuário no Firestore
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+
+    // Define a lista de usuários a ser exibida
+    let userList = [];
+    if (type === 'following') {
+        userList = userData.following || [];
+    } else if (type === 'followers') {
+        userList = userData.followers || [];
+    }
+
+    // Exibe a lista de usuários
+    displayUserList(userList, type);
+}
+
+// Função para exibir a lista de seguidores ou de pessoas que o usuário segue
+async function showUserList(type) {
+    const userId = currentProfileUserId; // ID do perfil carregado
+
+    // Busca os dados do usuário no Firestore
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+
+    // Define a lista de usuários a ser exibida
+    let userList = [];
+    if (type === 'following') {
+        userList = userData.following || [];
+    } else if (type === 'followers') {
+        userList = userData.followers || [];
+    }
+
+    // Exibe a lista de usuários
+    displayUserList(userList, type);
+}
+
+// Função para exibir a lista de usuários
+async function displayUserList(userList, type) {
+    const modal = document.createElement('div');
+    modal.classList.add('user-list-modal');
+
+    const modalContent = document.createElement('div');
+    modalContent.classList.add('user-list-modal-content');
+
+    const closeButton = document.createElement('span');
+    closeButton.classList.add('close');
+    closeButton.innerHTML = '&times;';
+    closeButton.onclick = () => modal.remove();
+
+    const title = document.createElement('h2');
+    title.textContent = type === 'following' ? 'Seguindo' : 'Seguidores';
+
+    const list = document.createElement('ul');
+
+    // Para cada ID na lista, buscar o nome e o username do usuário
+    for (const userId of userList) {
+        const userDoc = await db.collection('users').doc(userId).get();
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            const username = userData.username;
+            const displayName = userData.displayName || username;
+
+            // Criar o link para o perfil do usuário
+            const listItem = document.createElement('li');
+            const userLink = document.createElement('a');
+            userLink.href = `/Perfil/?user=${username}`; // Link para o perfil
+            userLink.textContent = displayName; // Exibe o nome do usuário
+            userLink.style.textDecoration = 'none'; // Remove sublinhado do link
+            userLink.style.color = '#000'; // Cor do texto
+
+            listItem.appendChild(userLink);
+            list.appendChild(listItem);
+        }
+    }
+
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(title);
+    modalContent.appendChild(list);
+    modal.appendChild(modalContent);
+
+    document.body.appendChild(modal);
+}

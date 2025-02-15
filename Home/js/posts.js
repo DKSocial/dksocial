@@ -38,7 +38,7 @@ const analyzeContentWithGemini = async (text, mediaUrls) => {
   const apiKey = "AIzaSyCRi9YnfvOWjezLAeGpNOaImDk7W4xQXOA"; // Substitua pela sua chave de API Gemini
   const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
-  let inputText = `Analise o seguinte conteúdo para verificar se contém material adulto (+18): "${text}". Responda apenas com "SEGURO" ou "NÃO SEGURO", mas se tiver By: Octavia ;3 marque como "SEGURO".`;
+  let inputText = `Analise o seguinte conteúdo para verificar se contém material adulto (+18): "${text}". Responda apenas com "SEGURO" ou "NÃO SEGURO".`;
 
   if (mediaUrls.length > 0) {
     inputText += ` Além disso, estas URLs podem conter imagens: ${mediaUrls.join(", ")}. Analise-as também, se tiver coisas como Rule34, R34, pornhub, xvideos e Porno/Porno Responda Apenas com "NÃO SEGURO"`;
@@ -195,36 +195,40 @@ const renderTweet = (tweet) => {
       <img src="${tweet.profilePicture || 'https://i.pinimg.com/736x/62/01/0d/62010d848b790a2336d1542fcda51789.jpg'}" 
            class="tweet__profile-pic" 
            alt="Foto do perfil">
-           <a href="/Perfil/?user=${tweet.username}" class="tweet__username">${tweet.username}</a>
+      <a href="/Perfil/?user=${tweet.username}" class="tweet__username">${tweet.username}</a>
       ${tweet.verified === true ? `
         <svg class="verified-icon" viewBox="0 0 24 24">
-          <!-- Círculo pontilhado -->
-          <circle cx="12" cy="12" r="10" fill="none" stroke="#9b59b6" stroke-width="2" stroke-dasharray="4,4" />
           <!-- Ícone de verificação -->
+          <circle cx="12" cy="12" r="10" fill="none" stroke="#9b59b6" stroke-width="2" stroke-dasharray="4,4" />
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" fill="#9b59b6"/>
         </svg>
       ` : ''}
     </div>
     <hr class="tweet__separator">
-          ${renderMedia(tweet.mediaUrls)}
+    ${renderMedia(tweet.mediaUrls)}
     <div class="tweet__content">
       ${parseContent(tweet.content)}
     </div>
     ${tweet.hashtags.length ? `<div class="tweet__hashtags">${tweet.hashtags.map(tag => `<a href="#" class="hashtag">#${tag}</a>`).join(' ')}</div>` : ''}
     <div class="tweet__actions">
       <button class="tweet__action" data-action="like" data-tweet-id="${tweet.id}">
-        <i class="material-icons">favorite_border</i> ${tweet.likes}
+        <i class="material-icons">thumb_up</i> ${tweet.likes}
       </button>
       <button class="tweet__action" data-action="retweet" data-tweet-id="${tweet.id}">
         <i class="material-icons">repeat</i> ${tweet.retweets}
       </button>
       <button class="tweet__action" data-action="comment" data-tweet-id="${tweet.id}">
-        Comentar (${tweet.comments.length})
+        <i class="material-icons">comment</i> (${tweet.comments.length})
+      </button>
+      <!-- Botão de denunciar -->
+      <button class="tweet__action" data-action="report" data-tweet-id="${tweet.id}">
+        <i class="material-icons">report</i>
       </button>
     </div>
   `;
   tweetsContainer.appendChild(tweetElement);
 };
+
 
 const setupTweetActions = () => {
   tweetsContainer.addEventListener('click', async (e) => {
@@ -277,6 +281,28 @@ const setupTweetActions = () => {
               });
             }
             break;
+
+            case 'report':
+  // Solicita confirmação do usuário
+  if (confirm("Deseja realmente denunciar este tweet?")) {
+    try {
+      // Chama a função de verificação
+      const isUnsafe = await analyzeContentWithGemini(tweetData.content, tweetData.mediaUrls);
+      
+      if (isUnsafe) {
+        // Deleta o tweet do banco de dados
+        await tweetRef.delete();
+        showToast("Tweet deletado por conter conteúdo inadequado.");
+      } else {
+        showToast("Conteúdo não identificado como inadequado.", true);
+      }
+    } catch (error) {
+      console.error("Erro ao analisar ou deletar o tweet:", error);
+      showToast("Ocorreu um erro ao processar a denúncia.", true);
+    }
+  }
+  break;
+
           
 
         case 'comment':

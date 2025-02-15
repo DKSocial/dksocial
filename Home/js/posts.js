@@ -1,4 +1,3 @@
-
 const firebaseConfig = {
   apiKey: "AIzaSyA_d2rRI7GWGvrcGq4KuiZiVhWAKWAkFjQ",
   authDomain: "dksocialbr.firebaseapp.com",
@@ -304,16 +303,9 @@ const parseContent = (content) => {
 };
 
 const renderMedia = (mediaUrls) => {
-  return mediaUrls.map(url => {
-    if (isImage(url)) {
-      return `<img src="${url}" class="media-preview" alt="Mídia do tweet">`;
-    }
-    return `<a href="${url}" target="_blank">${url}</a>`;
-  }).join('');
-};
-
-const isImage = (url) => {
-  return /\.(jpeg|jpg|gif|png|webp)$/.test(url);
+  return mediaUrls
+    .map(url => `<img src="${url}" class="media-preview" alt="Mídia do tweet">`)
+    .join('');
 };
 
 const updateMediaPreview = () => {
@@ -321,10 +313,11 @@ const updateMediaPreview = () => {
   previewContainer.innerHTML = mediaInput.value
     .split(',')
     .map(url => url.trim())
-    .filter(url => isImage(url))
+    .filter(Boolean)
     .map(url => `<img src="${url}" class="media-preview-item">`)
     .join('');
 };
+
 
 const extractHashtags = (content) => {
   return [...new Set(content.match(/#\w+/g) || [])].map(tag => tag.slice(1));

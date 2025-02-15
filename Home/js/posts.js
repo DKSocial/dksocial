@@ -304,7 +304,7 @@ const parseContent = (content) => {
 
 const renderMedia = (mediaUrls) => {
   return mediaUrls
-    .map(url => `<img src="${url}" class="media-preview" alt="Mídia do tweet">`)
+    .map(url => `<a href="${url}" target="_blank"><img src="${url}" class="media-preview" alt="Mídia do tweet"></a>`)
     .join('');
 };
 
@@ -314,9 +314,10 @@ const updateMediaPreview = () => {
     .split(',')
     .map(url => url.trim())
     .filter(Boolean)
-    .map(url => `<img src="${url}" class="media-preview-item">`)
+    .map(url => `<a href="${url}" target="_blank"><img src="${url}" class="media-preview-item"></a>`)
     .join('');
 };
+
 
 
 const extractHashtags = (content) => {

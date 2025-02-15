@@ -462,7 +462,6 @@ body {
         }
 
         .media-input-container {
-            display: flex;
             align-items: center;
             gap: 10px;
             margin-top: 5px;
@@ -470,6 +469,7 @@ body {
 
         .media-input {
             flex: 1;
+            display: none;
             background-color: #1C1D28;
             border: 1px solid #333;
             border-radius: 10px;
@@ -672,6 +672,10 @@ body {
 #commentForm button:hover {
     background-color: #8e44ad; /* Cor roxa mais escura ao passar o mouse */
 }
+
+#imageInput {
+    display: none; /* Oculta o input de arquivo original */
+}
     </style>
 </head>
 <body>
@@ -718,6 +722,11 @@ body {
                         data-js="media-url-input" 
                         class="media-input" 
                         placeholder="Cole URLs de mídia (separe múltiplas URLs com vírgula)">
+                         <!-- Botão estilizado para o input de arquivo -->
+<label for="imageInput" class="label-file">
+    <span class="material-icons" style="color: #9b59b6;">photo</span>
+  </label>
+  <input type="file" id="imageInput" />
                 </div>
 
                 <div class="media-preview"></div>
@@ -762,16 +771,7 @@ body {
     
     <!-- Toastify JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-
-    <script>
-        function openModal() {
-            document.getElementById('postModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('postModal').style.display = 'none';
-        }
-    </script>
     <script src="./js/posts.js"></script>
+    <script src="./js/imgur.js"></script>
 </body>
 </html>

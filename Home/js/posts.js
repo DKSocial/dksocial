@@ -208,8 +208,8 @@ const renderTweet = (tweet) => {
     </div>
     <hr class="tweet__separator">
     <div class="tweet__content">
-      ${parseContent(tweet.content)}
       ${renderMedia(tweet.mediaUrls)}
+      ${parseContent(tweet.content)}
     </div>
     ${tweet.hashtags.length ? `<div class="tweet__hashtags">${tweet.hashtags.map(tag => `<a href="#" class="hashtag">#${tag}</a>`).join(' ')}</div>` : ''}
     <div class="tweet__actions">

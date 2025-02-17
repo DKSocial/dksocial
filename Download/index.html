@@ -1,0 +1,113 @@
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download DK - Rede Social</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <style>
+        :root {
+            --background-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --principal-color: #6a1b9a;
+            --hover-color: #8e24aa;
+            --border-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: left;
+            color: var(--text-color);
+        }
+
+        .download-container {
+            max-width: 600px;
+            padding: 2rem;
+            background-color: #2a2a2a;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+        }
+
+        .download-container h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--principal-color);
+        }
+
+        .download-container p {
+            font-size: 1rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .download-container a {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--principal-color);
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .download-container a:hover {
+            background-color: var(--hover-color);
+        }
+
+        .download-container .note {
+            font-size: 0.875rem;
+            color: #8b98a5;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="download-container">
+        <h1>Baixe o DK</h1>
+        <p>Bem-vindo ao DK, a rede social que conecta você com seus amigos e familiares de uma maneira única e divertida. Baixe agora e comece a compartilhar momentos incríveis!</p>
+        <a href="#" id="downloadLink">Baixar para Android</a>
+        <a href="#" onclick="ios()">Baixar para iOS</a>
+        <p class="note">Nota: Certifique-se de que seu dispositivo atende aos requisitos mínimos para uma melhor experiência.</p>
+    </div>
+</body>
+<script>
+    function ios() {
+        alert('Em breve disponível para iOS!');
+    }
+    </script>
+        <script>
+            document.getElementById('downloadLink').addEventListener('click', function(event) {
+                event.preventDefault(); // Impede o comportamento padrão do link
+    
+                // URL do arquivo APK
+                const apkUrl = './DK.apk';
+    
+                // Cria um elemento <a> temporário para iniciar o download
+                const link = document.createElement('a');
+                link.href = apkUrl;
+                link.download = 'DK.apk'; // Nome do arquivo que será baixado
+    
+                // Adiciona o link ao DOM e simula o clique
+                document.body.appendChild(link);
+                link.click();
+    
+                // Remove o link do DOM após o download
+                document.body.removeChild(link);
+            });
+        </script>
+</html>

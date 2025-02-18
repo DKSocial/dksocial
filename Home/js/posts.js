@@ -40,6 +40,7 @@ const analyzeContentWithGemini = async (text, mediaUrls) => {
 
   let inputText = `Analise o seguinte conteúdo para verificar se contém material adulto (+18): "${text}". Responda apenas com "SEGURO" ou "NÃO SEGURO".`;
 
+
   const response = await fetch(`${apiUrl}?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -139,6 +140,7 @@ const postTweet = async () => {
       likesUsers: [], // Lista de usuários que curtiram o tweet
       retweets: 0,
       comments: [],
+      sponsored: false,
       userId: currentUser.uid,
       username: userData.username || 'Usuário Anônimo',
       profilePicture: userData.profilePicture || 'https://i.pinimg.com/736x/62/01/0d/62010d848b790a2336d1542fcda51789.jpg',
@@ -174,7 +176,18 @@ const loadTweets = () => {
       updateHashtags(tweet.hashtags);
     });
 
+    loadSponsoredTweets();
     renderTrendingHashtags();
+  });
+};
+
+const loadSponsoredTweets = async () => {
+  const sponsoredQuery = db.collection('tweets').where('sponsored', '==', true).orderBy('timestamp', 'desc').limit(5); // Limitar a 5 posts patrocinados
+  const snapshot = await sponsoredQuery.get();
+
+  snapshot.forEach(doc => {
+    const tweet = { id: doc.id, ...doc.data() };
+    renderSponsoredTweet(tweet);
   });
 };
 
@@ -218,6 +231,49 @@ const renderTweet = (tweet) => {
     </div>
   `;
   tweetsContainer.appendChild(tweetElement);
+};
+
+const renderSponsoredTweet = (tweet) => {
+  const sponsoredTweetElement = document.createElement('div');
+  sponsoredTweetElement.className = 'tweet sponsored';
+  sponsoredTweetElement.innerHTML = `
+    <div class="tweet__header">
+      <img src="${tweet.profilePicture || 'https://i.pinimg.com/736x/62/01/0d/62010d848b790a2336d1542fcda51789.jpg'}" 
+           class="tweet__profile-pic" 
+           alt="Foto do perfil">
+      <a href="/Perfil/?user=${tweet.username}" class="tweet__username">${tweet.username}</a>
+      ${tweet.verified === true ? `
+        <svg class="verified-icon" viewBox="0 0 24 24">
+          <!-- Ícone de verificação -->
+          <circle cx="12" cy="12" r="10" fill="none" stroke="#9b59b6" stroke-width="2" stroke-dasharray="4,4" />
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" fill="#9b59b6"/>
+        </svg>
+      ` : ''}
+      <span class="sponsored-label">Patrocinado</span>
+    </div>
+    <hr class="tweet__separator">
+    ${renderMedia(tweet.mediaUrls)}
+    <div class="tweet__content">
+      ${parseContent(tweet.content)}
+    </div>
+    ${tweet.hashtags.length ? `<div class="tweet__hashtags">${tweet.hashtags.map(tag => `<a href="#" class="hashtag">#${tag}</a>`).join(' ')}</div>` : ''}
+    <div class="tweet__actions">
+      <button class="tweet__action" data-action="like" data-tweet-id="${tweet.id}">
+        <i class="material-icons">thumb_up</i> ${tweet.likes}
+      </button>
+      <button class="tweet__action" data-action="retweet" data-tweet-id="${tweet.id}">
+        <i class="material-icons">repeat</i> ${tweet.retweets}
+      </button>
+      <button class="tweet__action" data-action="comment" data-tweet-id="${tweet.id}">
+        <i class="material-icons">comment</i> (${tweet.comments.length})
+      </button>
+      <!-- Botão de denunciar -->
+      <button class="tweet__action" data-action="report" data-tweet-id="${tweet.id}">
+        <i class="material-icons">report</i>
+      </button>
+    </div>
+  `;
+  sponsoredTweetsContainer.appendChild(sponsoredTweetElement);
 };
 
 

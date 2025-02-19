@@ -26,7 +26,7 @@ document.getElementById('google-login').addEventListener('click', (e) => {
                     if (doc.exists) {
                         // Se o usuário já existir, realiza o login
                         alert('Login bem-sucedido com Google!');
-                        window.location.href = '/home/'; // Redirecionar para a página desejada
+                        window.location.href = '/Home/'; // Redirecionar para a página desejada
                     } else {
                         // Se o usuário não existir, abre a modal de criação de conta
                         document.getElementById('register-modal').style.display = 'flex';
@@ -55,7 +55,7 @@ document.getElementById('github-login').addEventListener('click', (e) => {
                     if (doc.exists) {
                         // Se o usuário já existir, realiza o login
                         alert('Login bem-sucedido com GitHub!');
-                        window.location.href = '/home/'; // Redirecionar para a página desejada
+                       window.location.href = '/Home/';
                     } else {
                         // Se o usuário não existir, abre a modal de criação de conta
                         document.getElementById('register-modal').style.display = 'flex';
@@ -101,6 +101,7 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
             } else {
                 localStorage.setItem('setupConcluido', "true");
                 alert('Login bem-sucedido!');
+                window.location.href = '/Home/';
             }
         })
         .catch((error) => {
@@ -149,7 +150,7 @@ document.getElementById('profile-form').addEventListener('submit', (e) => {
         }).then(() => {
             alert('Perfil salvo com sucesso!');
             localStorage.setItem('setupConcluido', "true");
-            window.location.href = '/home/'; // Redirecionar para a página desejada
+            window.location.href = '/Home/'; // Redirecionar para a página desejada
             document.getElementById('profile-modal').style.display = 'none';
         }).catch((error) => {
             alert(error.message);

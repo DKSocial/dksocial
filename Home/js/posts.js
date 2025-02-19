@@ -38,7 +38,7 @@ const analyzeContentWithGemini = async (text, mediaUrls) => {
   const apiKey = "AIzaSyCRi9YnfvOWjezLAeGpNOaImDk7W4xQXOA"; // Substitua pela sua chave de API Gemini
   const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
-  let inputText = `Analise o seguinte conteúdo para verificar se contém material adulto (+18): "${text}", nao deixe passar conteudo de odio como: Se Mata, Smt, Se M4t4. Responda apenas com "SEGURO" ou "NÃO SEGURO".`;
+  let inputText = `Analise o seguinte conteúdo para verificar se contém material adulto (+18): "${text}", nao deixe passar conteudo de odio como: Se Mata, Smt, Se M4t4, mas deixe passar palavrões como Porra e etc. Mas Conteudo Como: Porno, Xvideos, XXX, Porn, Rule34 nao deixe passar. Responda apenas com "SEGURO" ou "NÃO SEGURO".`;
 
 
   const response = await fetch(`${apiUrl}?key=${apiKey}`, {

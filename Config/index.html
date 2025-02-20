@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DK - Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+                * {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(to bottom, #06070c, black);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .settings-panel {
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            border: 1px solid #532466;
+            border-radius: 0;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+        }
+
+        .settings-panel h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .settings-section {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #532466;
+            padding-bottom: 10px;
+        }
+
+        .settings-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .settings-section-header:hover {
+            background-color: #1c1c1c;
+        }
+
+        .settings-section-header h2 {
+            font-size: 18px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-section-header .material-icons {
+            font-size: 24px;
+            color: #532466;
+        }
+
+        .settings-section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .settings-section-content.open {
+            max-height: 500px;
+            padding-top: 10px;
+        }
+
+        .settings-item {
+            margin-bottom: 15px;
+        }
+
+        .settings-item label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+
+        .settings-item input,
+        .settings-item select,
+        .settings-item textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background-color: black;
+            border: 1px solid #532466;
+            border-radius: 10px;
+            color: #ffffff;
+            outline: none;
+        }
+
+        .settings-item input:focus,
+        .settings-item select:focus,
+        .settings-item textarea:focus {
+            border-color: #8e44ad;
+        }
+
+        .settings-item textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .settings-item button {
+            background-color: #532466;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .settings-item button:hover {
+            background-color: #8e44ad;
+        }
+
+        .settings-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .settings-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .settings-panel::-webkit-scrollbar-thumb {
+            background: #532466;
+            border-radius: 3px;
+        }
+
+        .settings-panel::-webkit-scrollbar-thumb:hover {
+            background: #8e44ad;
+        }
+
+        .sidebar {
+            width: 240px;
+            background-color: black;
+            padding: 20px;
+            display: flex;
+            border: 1px solid #532466;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 1028px) {
+            body {
+                overflow-y: auto;
+            }
+
+            .container {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .sidebar {
+                width: 95%;
+                height: auto;
+                position: fixed;
+                bottom: 9px;
+                left: 9px;
+                right: auto;
+                background-color: black;
+                border-radius: 20px;
+                flex-direction: row;
+                justify-content: space-around;
+                padding: 8px;
+                z-index: 9999;
+            }
+
+            .sidebar a {
+                font-size: 18px;
+                gap: 2px;
+                flex-direction: column;
+            }
+
+            .active {
+                display: none;
+            }
+
+            .main-content {
+                width: 96%;
+                overflow: auto;
+                padding: 15px;
+                margin-bottom: 60px;
+            }
+
+            .trending {
+                display: none;
+            }
+
+            .post-box {
+                display: none;
+            }
+
+            .post-box textarea {
+                height: 80px;
+            }
+
+            .post-box .actions button {
+                padding: 12px 25px;
+                font-size: 14px;
+            }
+
+            .sidebar a img {
+                width: 20px;
+                height: 20px;
+            }
+
+            .post-button {
+                display: block;
+                position: fixed;
+                bottom: 80px;
+                right: 20px;
+                background-color: #532466;
+                color: #ffffff;
+                border: none;
+                padding: 20px;
+                border-radius: 50%;
+                cursor: pointer;
+                z-index: 10000;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+                transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+
+            .post-button:hover {
+                background-color: #8e44ad;
+                transform: scale(1.1);
+            }
+
+            .logo {
+                visibility: hidden;
+                position: absolute;
+            }
+        }
+
+        .logo img {
+            width: 60px;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        #album-cover {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+#progress {
+    font-size: 14px;
+    font-weight: bold;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <img src="/Home/logo.png" alt="logo" class="logo">
+            </div>
+            <a href="/Home/" class="active">
+                <span class="material-icons">home</span>
+                Início
+            </a>
+            <a href="/Perfil/">
+                <span class="material-icons">manage_accounts</span>
+                Perfil
+            </a>
+            <a href="/Chat/">
+                <span class="material-icons">mail</span>
+                Chat
+            </a>
+            <a href="/Config/">
+                <span class="material-icons">settings</span>
+                Settings
+            </a>
+            <a href="#">
+                <span class="material-icons">camera</span>
+                DKLip
+            </a>
+        </div>
+    </div>
+    <div class="settings-panel">
+        <h1>Configurações</h1>
+
+        <!-- Seção de Conexões -->
+        <div class="settings-section">
+            <div class="settings-section-header" onclick="toggleSection('connections')">
+                <h2><span class="material-icons">link</span> Conexões</h2>
+                <span class="material-icons">expand_more</span>
+            </div>
+            <div class="settings-section-content" id="connections">
+                <!-- Conexão com Discord -->
+                <div class="settings-item">
+                    <label for="discord-connection">Conectar com Discord</label>
+                    <button id="connect-discord" onclick="connectDiscord()">
+                        <span class="material-icons">link</span> Conectar
+                    </button>
+                    <p id="discord-status" style="margin-top: 10px; color: #888;">
+                        Status: Não conectado
+                    </p>
+                </div>
+
+                <!-- Divisão visual -->
+                <hr style="border: 1px solid #532466; margin: 20px 0;">
+
+                <!-- Conexão com Spotify -->
+                <div class="settings-item">
+                    <label for="spotify-connection">Conectar com Spotify</label>
+                    <button id="connect-spotify" onclick="connectSpotify()">
+                        <span class="material-icons">link</span> Conectar
+                    </button>
+                    <p id="spotify-status" style="margin-top: 10px; color: #888;">
+                        Status: Não conectado
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção de Notificações -->
+        <div class="settings-section">
+            <div class="settings-section-header" onclick="toggleSection('notifications')">
+                <h2><span class="material-icons">notifications</span> Notificações</h2>
+                <span class="material-icons">expand_more</span>
+            </div>
+            <div class="settings-section-content" id="notifications">
+                <!-- Receber Notificações -->
+                <div class="settings-item">
+                    <label for="notifications">Receber Notificações</label>
+                    <select id="notifications">
+                        <option value="enabled">Ativado</option>
+                        <option value="disabled">Desativado</option>
+                    </select>
+                    <button onclick="saveNotificationSettings()">Salvar</button>
+                </div>
+
+                <!-- Som de Notificação -->
+                <div class="settings-item">
+                    <label for="notification-sound">Som de Notificação</label>
+                    <select id="notification-sound">
+                        <option value="sound1">Funçao Não Implementada</option>
+                        <option value="sound2">Funçao Não Implementada</option>
+                        <option value="sound3">Funçao Não Implementada</option>
+                    </select>
+                    <button onclick="saveNotificationSound()">Salvar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção de Idioma -->
+        <div class="settings-section">
+            <div class="settings-section-header" onclick="toggleSection('language')">
+                <h2><span class="material-icons">language</span> Idioma</h2>
+                <span class="material-icons">expand_more</span>
+            </div>
+            <div class="settings-section-content" id="language">
+                <!-- Seleção de Idioma -->
+                <div class="settings-item">
+                    <label for="language-select">Idioma</label>
+                    <select id="language-select">
+                        <option value="pt-BR">Português (Brasil)</option>
+                        <option value="en-US">Inglês (EUA)</option>
+                        <option value="es-ES">Espanhol (Espanha)</option>
+                        <option value="fr-FR">Francês (França)</option>
+                        <option value="de-DE">Alemão (Alemanha)</option>
+                        <option value="it-IT">Italiano (Itália)</option>
+                    </select>
+                    <button onclick="saveLanguage()">Salvar Idioma</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botão de Logout -->
+        <div class="settings-item">
+            <button id="logout-button">Logout</button>
+        </div>
+    </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

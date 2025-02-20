@@ -234,6 +234,11 @@ const renderTweet = (tweet) => {
       <button class="tweet__action" data-action="report" data-tweet-id="${tweet.id}">
         <i class="material-icons">report</i>
       </button>
+      ${tweet.userId === currentUser?.uid ? `
+        <button class="tweet__action delete-button" data-action="delete" data-tweet-id="${tweet.id}">
+          <i class="material-icons">delete</i>
+        </button>
+      ` : ''}
     </div>
   `;
   tweetsContainer.appendChild(tweetElement);
@@ -370,6 +375,18 @@ const setupTweetActions = () => {
       loadTweets(); // Recarrega os tweets para atualizar as contagens
     } catch (error) {
       showToast(`Erro ao realizar ação: ${error.message}`, true);
+    }
+
+    if (action === 'delete') {
+      if (confirm("Tem certeza de que deseja excluir este post?")) {
+        try {
+          await db.collection('tweets').doc(tweetId).delete();
+          showToast("Post deletado com sucesso!");
+          loadTweets(); // Recarregar os tweets
+        } catch (error) {
+          showToast(`Erro ao deletar post: ${error.message}`, true);
+        }
+      }
     }
   });
 };

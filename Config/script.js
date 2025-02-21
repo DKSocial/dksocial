@@ -1,11 +1,7 @@
 // Configurações do Spotify
 const clientId = 'ae83ae23c66346119a9e212d19084e0b'; // Substitua pelo seu Client ID do Spotify
-const redirectUri = 'http://127.0.0.1:5500/Config/'; // URL de redirecionamento
+const redirectUri = 'https://dksocial.space/Config/'; // URL de redirecionamento
 const scopes = 'user-read-currently-playing user-read-playback-state'; // Escopos necessários
-
-// Intervalo de atualização (em milissegundos)
-const updateInterval = 1000; // 1 segundo
-let updateIntervalId;
 
 // Função para conectar com o Spotify
 function connectSpotify() {
@@ -36,10 +32,12 @@ async function getNowPlaying() {
     const accessToken = localStorage.getItem('spotifyAccessToken');
     const nowPlayingElement = document.getElementById('now-playing');
     const albumCoverElement = document.getElementById('album-cover');
+    const progressContainer = document.getElementById('progress-container');
     const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
+    const currentTimeElement = document.getElementById('current-time');
+    const totalTimeElement = document.getElementById('total-time');
 
-    if (!nowPlayingElement || !albumCoverElement || !progressBar || !progressText) {
+    if (!nowPlayingElement || !albumCoverElement || !progressContainer || !progressBar || !currentTimeElement || !totalTimeElement) {
         console.error('Elementos do DOM não encontrados.');
         return;
     }
@@ -64,7 +62,6 @@ async function getNowPlaying() {
             const albumCoverUrl = data.item.album.images[0].url;
             const progressMs = data.progress_ms;
             const durationMs = data.item.duration_ms;
-            const progressPercent = ((progressMs / durationMs) * 100).toFixed(2);
 
             // Exibe a música atual
             nowPlayingElement.textContent = `Tocando agora: ${songName} - ${artistName}`;
@@ -73,14 +70,27 @@ async function getNowPlaying() {
             albumCoverElement.src = albumCoverUrl;
             albumCoverElement.style.display = 'block';
 
-            // Exibe o progresso da música
-            progressBar.value = progressPercent;
-            progressText.textContent = `Progresso: ${progressPercent}%`;
+            // Exibe o mini container de progresso
+            progressContainer.style.display = 'block';
+
+            // Atualiza a barra de progresso
+            const progressPercent = ((progressMs / durationMs) * 100).toFixed(2);
+            progressBar.style.width = `${progressPercent}%`;
+
+            // Converte milissegundos para minutos:segundos
+            const formatTime = (ms) => {
+                const minutes = Math.floor(ms / 60000);
+                const seconds = ((ms % 60000) / 1000).toFixed(0);
+                return `${minutes}:${seconds.padStart(2, '0')}`;
+            };
+
+            // Atualiza o tempo atual e o tempo total
+            currentTimeElement.textContent = formatTime(progressMs);
+            totalTimeElement.textContent = formatTime(durationMs);
         } else if (response.status === 204) {
             nowPlayingElement.textContent = 'Nenhuma música está tocando no momento.';
             albumCoverElement.style.display = 'none';
-            progressBar.value = 0;
-            progressText.textContent = '';
+            progressContainer.style.display = 'none';
         } else {
             console.error('Erro ao obter a música atual:', response.statusText);
             nowPlayingElement.textContent = 'Erro ao obter a música atual.';
@@ -91,25 +101,57 @@ async function getNowPlaying() {
     }
 }
 
-// Função para iniciar a atualização periódica
-function startUpdatingNowPlaying() {
-    updateIntervalId = setInterval(getNowPlaying, updateInterval);
-}
-
-// Função para parar a atualização periódica
-function stopUpdatingNowPlaying() {
-    clearInterval(updateIntervalId);
-}
-
 // Função para desconectar do Spotify
 function disconnectSpotify() {
     localStorage.removeItem('spotifyAccessToken');
     checkSpotifyConnection();
-    stopUpdatingNowPlaying(); // Para a atualização periódica
     alert('Desconectado do Spotify com sucesso!');
 }
 
-// Inicia a atualização quando a página carrega
+// Função para alternar a exibição das seções
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    section.classList.toggle('open');
+}
+
+// Função para salvar configurações de notificação
+function saveNotificationSettings() {
+    const notifications = document.getElementById('notifications').value;
+    localStorage.setItem('notifications', notifications);
+    alert('Configurações de notificação salvas com sucesso!');
+}
+
+// Função para salvar som de notificação
+function saveNotificationSound() {
+    const notificationSound = document.getElementById('notification-sound').value;
+    localStorage.setItem('notificationSound', notificationSound);
+    alert('Som de notificação salvo com sucesso!');
+}
+
+// Função para salvar idioma
+function saveLanguage() {
+    const selectedLanguage = document.getElementById('language-select').value;
+    localStorage.setItem('selectedLanguage', selectedLanguage);
+    alert('Idioma salvo com sucesso!');
+    window.location.reload(); // Recarrega a página para aplicar as traduções
+}
+
+// Carrega o idioma salvo ao abrir a página
+const languageSelect = document.getElementById('language-select');
+languageSelect.value = localStorage.getItem('selectedLanguage') || 'pt-BR';
+
+// Firebase Logout
+const logoutButton = document.getElementById('logout-button');
+logoutButton.addEventListener('click', () => {
+    firebase.auth().signOut().then(() => {
+        alert('Logout realizado com sucesso!');
+        window.location.href = '/Login/'; // Redireciona para a página de login
+    }).catch((error) => {
+        console.error('Erro ao fazer logout:', error);
+    });
+});
+
+// Verifica o status das conexões ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
     const accessToken = getAccessTokenFromUrl();
     if (accessToken) {
@@ -120,5 +162,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Inicia a atualização periódica
-    startUpdatingNowPlaying();
+    setInterval(getNowPlaying, 1000); // Atualiza a cada 1 segundo
 });

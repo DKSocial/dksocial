@@ -26,6 +26,7 @@ document.getElementById('google-login').addEventListener('click', (e) => {
                     if (doc.exists) {
                         // Se o usuário já existir, realiza o login
                         alert('Login bem-sucedido com Google!');
+                        localStorage.setItem('setupConcluido', "true");
                         window.location.href = '/Home/'; // Redirecionar para a página desejada
                     } else {
                         // Se o usuário não existir, abre a modal de criação de conta
@@ -55,6 +56,7 @@ document.getElementById('github-login').addEventListener('click', (e) => {
                     if (doc.exists) {
                         // Se o usuário já existir, realiza o login
                         alert('Login bem-sucedido com GitHub!');
+                        localStorage.setItem('setupConcluido', "true");
                         window.location.href = '/Home/'; // Redirecionar para a página desejada
                     } else {
                         // Se o usuário não existir, abre a modal de criação de conta

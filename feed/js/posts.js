@@ -75,7 +75,7 @@ const initApp = () => {
       setupEventListeners();
       setupTweetActions(); // Inicializar eventos de ações dos tweets
     } else {
-      window.location.href = '/log/';
+      window.location.href = '/Login/';
     }
   });
 };
@@ -143,7 +143,9 @@ const postTweet = async () => {
       sponsored: false,
       userId: currentUser.uid,
       username: userData.username || 'Usuário Anônimo',
-      userHandle: userData.userHandle || '@user.dksocial.space',
+      userHandle: auth.currentUser?.email 
+  ? `${auth.currentUser.email.split('@')[0]}.dksocial.space` 
+  : 'user.dksocial.space',
       profilePicture: userData.profilePicture || 'https://i.pinimg.com/736x/62/01/0d/62010d848b790a2336d1542fcda51789.jpg',
       verified: userData.verified === true,
       timestamp: firebase.firestore.FieldValue.serverTimestamp() // Isso está correto
@@ -647,7 +649,7 @@ auth.onAuthStateChanged((user) => {
           });
   } else {
       // Usuário não está logado, redirecione para a página de login
-      window.location.href = '/Login/';
+      window.location.href = '/log/';
   }
 });
 

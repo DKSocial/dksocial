@@ -172,6 +172,7 @@
     .chat-input {
       display: flex;
       padding: 10px;
+      z-index: 1000;
       border-top: 1px solid #B794F4;
     }
 
@@ -228,17 +229,10 @@
         left: 0;
         bottom: 0;
         background-color: #FAF5FF; /* Mantém o fundo do chat */
-        z-index: 9999; /* Garante que o chat fique abaixo da sidebar */
+        z-index: 999; /* Garante que o chat fique abaixo da sidebar */
         transform: translateX(100%);
         transition: transform 0.3s ease;
       }
-
-      .chat-input {
-      display: flex;
-      padding: 10px;
-      border-top: 1px solid #B794F4;
-      background-color: #FAF5FF;
-     }
 
       .chat-area.visible {
         transform: translateX(0);

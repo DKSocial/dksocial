@@ -256,7 +256,7 @@ const getPlatform = () => {
   } else if (/android/i.test(userAgent)) {
     return 'Android';
   } else if (/linux/i.test(userAgent)) {
-    return 'Linux';
+    return 'Android';
   } else {
     return 'Outro';
   }

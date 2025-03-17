@@ -259,7 +259,7 @@ const getPlatform = () => {
     }
     return 'Android | DK';
   } else if (/linux/i.test(userAgent)) {
-    return 'Linux | DKWeb';
+    return 'Android | DKLiteb';
   } else {
     return 'Outro';
   }

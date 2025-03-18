@@ -18,8 +18,10 @@
         <div class="profile-header">
           <img id="profileImage" src="https://via.placeholder.com/100" alt="Foto de Perfil">
           <h1 id="profileName">Carregando...</h1>
-          <p id="userHandle">@carregando.dksocial.space</p>
+          <b id="userHandle">@carregando.dksocial.space</b>
+          <p>Seguidores: <span id="followerCount">0</span></p>
           <button id="editProfileButton" style="display: none;">Editar Perfil</button>
+          <button id="followButton" style="display: none;">Seguir</button>
         </div>
 
         <!-- Biografia do perfil -->
@@ -67,7 +69,6 @@
     body {
       margin: 0;
       background: linear-gradient(to bottom, #FAF5FF, #E9D8FD);
-      overflow: hidden;
       color: #4A148C;
     }
 
@@ -80,8 +81,8 @@
     /* Conteúdo principal */
     .main-content {
       width: 100%;
+      overflow: auto;
       padding: 20px;
-      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -198,6 +199,46 @@
     button:hover {
       background: linear-gradient(45deg, #5728a8, #9F7AEA);
     }
+
+    /* Estilos para a área de tweets */
+.tweets-container {
+  background-color: #FAF5FF;
+  padding: 20px;
+  border: 1px solid #B794F4;
+  border-radius: 14px;
+  margin-top: 20px;
+}
+
+.tweets-container h2 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  color: #4A148C;
+}
+
+.tweets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.tweet {
+  background-color: white;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #E9D8FD;
+}
+
+.tweet-content {
+  color: #4A148C;
+  margin: 0 0 10px 0;
+}
+
+.tweet-info {
+  display: flex;
+  gap: 15px;
+  color: #6B46C1;
+  font-size: 14px;
+}
   </style>
 
   <script>
@@ -216,125 +257,174 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Função para validar o userHandle
-function validateUserHandle(userHandle) {
-  const regex = /^[a-zA-Z0-9_-]+$/;
-
-  if (userHandle.length < 3 || userHandle.length > 15) {
-    return "O userHandle deve ter entre 3 e 15 caracteres.";
-  }
-
-  if (!regex.test(userHandle)) {
-    return "O userHandle só pode conter letras, números, underscores (_) e hífens (-).";
-  }
-
-  return null;
+// Função para extrair o userhandle da URL
+function getUserHandleFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('user');
 }
 
-// Função para verificar se o userHandle já existe no Firestore
-async function isUserHandleAvailable(userHandle) {
+
+// Função para carregar os dados do perfil
+async function loadProfileByUserHandle(userHandle) {
   try {
     const querySnapshot = await db.collection('users').where('userHandle', '==', userHandle).get();
-    return querySnapshot.empty; // Retorna true se o userHandle estiver disponível
-  } catch (error) {
-    console.error("Erro ao verificar userHandle:", error);
-    return false; // Em caso de erro, assume que o userHandle não está disponível
-  }
-}
+    if (!querySnapshot.empty) {
+      const userData = querySnapshot.docs[0].data();
+      const userId = querySnapshot.docs[0].id;
 
-// Função para carregar os dados do usuário
-function loadUserData() {
-  const user = auth.currentUser;
+      document.getElementById('profileName').textContent = userData.username || 'Nome não definido';
+      document.getElementById('userHandle').textContent = `@${userData.userHandle}`;
+      document.getElementById('bioText').textContent = userData.bio || 'Biografia não definida';
+      document.getElementById('profileImage').src = userData.profilePicture || 'https://via.placeholder.com/100';
 
-  if (user) {
-    // Carrega os dados adicionais do usuário do Firestore
-    db.collection('users').doc(user.uid).get().then((doc) => {
-      if (doc.exists) {
-        const userData = doc.data();
-        document.getElementById('profileName').textContent = userData.username || 'Nome não definido';
-        document.getElementById('userHandle').textContent = `@${userData.userHandle || 'carregando.dksocial.space'}`;
-        document.getElementById('bioText').textContent = userData.bio || 'Biografia não definida';
-        document.getElementById('profileImage').src = userData.profilePicture || 'https://via.placeholder.com/100';
+      updateFollowerCount(userId);
+      loadUserTweets(userId);
+
+      const currentUser = auth.currentUser;
+      if (currentUser && currentUser.uid === userId) {
+        document.getElementById('editProfileButton').style.display = 'block';
+        document.getElementById('followButton').style.display = 'none';
       } else {
-        console.log("Nenhum documento encontrado!");
+        document.getElementById('editProfileButton').style.display = 'none';
+        document.getElementById('followButton').style.display = 'block';
+        checkIfFollowing(currentUser.uid, userId);
       }
-    }).catch((error) => {
-      console.log("Erro ao carregar dados do Firestore:", error);
-    });
-  } else {
-    console.log("Nenhum usuário logado.");
+    } else {
+      console.log("Nenhum usuário encontrado com esse userHandle.");
+    }
+  } catch (error) {
+    console.error("Erro ao carregar perfil:", error);
   }
 }
 
-// Mostrar o modal de edição
-document.getElementById('editProfileButton').addEventListener('click', () => {
-  document.getElementById('editProfileModal').style.display = 'flex';
-  populateEditForm(); // Preenche o formulário de edição com os dados atuais
+// Função para atualizar contagem de seguidores
+async function updateFollowerCount(userId) {
+  try {
+    const followersSnapshot = await db.collection('followers').doc(userId).collection('userFollowers').get();
+    document.getElementById('followerCount').textContent = followersSnapshot.size;
+  } catch (error) {
+    console.error("Erro ao carregar seguidores:", error);
+  }
+}
+
+// Função para verificar se está seguindo
+async function checkIfFollowing(currentUserId, profileUserId) {
+  try {
+    const followDoc = await db.collection('followers').doc(profileUserId).collection('userFollowers').doc(currentUserId).get();
+    const followButton = document.getElementById('followButton');
+    followButton.textContent = followDoc.exists ? "Deixar de seguir" : "Seguir";
+    followButton.classList.toggle('unfollow', followDoc.exists);
+  } catch (error) {
+    console.error("Erro ao verificar se está seguindo:", error);
+  }
+}
+
+// Função para seguir/deixar de seguir
+async function toggleFollow(currentUserId, profileUserId) {
+  const followRef = db.collection('followers').doc(profileUserId).collection('userFollowers').doc(currentUserId);
+  
+  try {
+    const followDoc = await followRef.get();
+    if (followDoc.exists) {
+      await followRef.delete();
+    } else {
+      await followRef.set({ timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+    updateFollowerCount(profileUserId);
+    checkIfFollowing(currentUserId, profileUserId);
+  } catch (error) {
+    console.error("Erro ao seguir/deixar de seguir:", error);
+  }
+}
+
+// Event Listeners
+document.getElementById('followButton').addEventListener('click', () => {
+  const currentUser = auth.currentUser;
+  const profileUserId = document.getElementById('userHandle').textContent.replace('@', '');
+  
+  if (currentUser) {
+    toggleFollow(currentUser.uid, profileUserId);
+  } else {
+    alert("Você precisa estar logado para seguir alguém.");
+  }
 });
 
-// Fechar o modal de edição
+document.getElementById('editProfileButton').addEventListener('click', () => {
+  document.getElementById('editProfileModal').style.display = 'flex';
+  populateEditForm();
+});
+
 document.getElementById('cancelEditButton').addEventListener('click', () => {
   document.getElementById('editProfileModal').style.display = 'none';
 });
 
-// Converter imagem para Base64
-document.getElementById('imageUpload').addEventListener('change', function (event) {
+document.getElementById('imageUpload').addEventListener('change', function(event) {
   const file = event.target.files[0];
   if (file) {
     const reader = new FileReader();
-    reader.onload = function (e) {
-      const base64Image = e.target.result;
-      document.getElementById('editProfilePicture').value = base64Image; // Armazena a imagem em Base64 no input oculto
+    reader.onload = (e) => {
+      document.getElementById('editProfilePicture').value = e.target.result;
     };
-    reader.readAsDataURL(file); // Converte a imagem para Base64
+    reader.readAsDataURL(file);
   }
 });
 
-// Salvar as alterações do perfil
 document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-
   const user = auth.currentUser;
+  
   if (user) {
     const newUserHandle = document.getElementById('editUserHandle').value.trim();
-
-    // Valida o userHandle
     const validationError = validateUserHandle(newUserHandle);
+    
     if (validationError) {
       alert(validationError);
       return;
     }
 
-    // Verifica se o userHandle já está em uso
     const isAvailable = await isUserHandleAvailable(newUserHandle);
     if (!isAvailable) {
       alert("Este userHandle já está em uso. Escolha outro.");
       return;
     }
 
-    // Se o userHandle for válido e estiver disponível, prossegue com a atualização
     const updatedData = {
       username: document.getElementById('editName').value,
       userHandle: newUserHandle,
       bio: document.getElementById('editBio').value,
-      profilePicture: document.getElementById('editProfilePicture').value // Usa a imagem em Base64
+      profilePicture: document.getElementById('editProfilePicture').value
     };
 
-    // Atualiza os dados no Firestore
-    db.collection('users').doc(user.uid).update(updatedData)
-      .then(() => {
-        alert('Perfil atualizado com sucesso!');
-        document.getElementById('editProfileModal').style.display = 'none';
-        loadUserData(); // Recarrega os dados do usuário
-      })
-      .catch((error) => {
-        console.error('Erro ao atualizar perfil:', error);
-        alert('Erro ao atualizar perfil. Tente novamente.');
-      });
+    try {
+      await db.collection('users').doc(user.uid).update(updatedData);
+      alert('Perfil atualizado com sucesso!');
+      document.getElementById('editProfileModal').style.display = 'none';
+      loadProfileByUserHandle(newUserHandle);
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      alert('Erro ao atualizar perfil. Tente novamente.');
+    }
   }
 });
 
-// Preencher o formulário de edição com os dados atuais
+// Funções auxiliares
+function validateUserHandle(userHandle) {
+  const regex = /^[a-zA-Z0-9_-]+$/;
+  if (userHandle.length < 3 || userHandle.length > 15) return "UserHandle deve ter entre 3-15 caracteres.";
+  if (!regex.test(userHandle)) return "Use apenas letras, números, _ ou -.";
+  return null;
+}
+
+async function isUserHandleAvailable(userHandle) {
+  try {
+    const querySnapshot = await db.collection('users').where('userHandle', '==', userHandle).get();
+    return querySnapshot.empty;
+  } catch (error) {
+    console.error("Erro ao verificar userHandle:", error);
+    return false;
+  }
+}
+
 function populateEditForm() {
   const user = auth.currentUser;
   if (user) {
@@ -354,48 +444,39 @@ function populateEditForm() {
   }
 }
 
-// Validar o userHandle em tempo real enquanto o usuário digita
-document.getElementById('editUserHandle').addEventListener('input', async (e) => {
-  const userHandle = e.target.value.trim();
-  const errorElement = document.getElementById('userHandleError');
+// Inicialização
+window.onload = () => {
+  const userHandle = getUserHandleFromURL();
+  userHandle ? loadProfileByUserHandle(userHandle) : console.log("Nenhum userHandle na URL.");
+};
 
-  // Valida o userHandle
-  const validationError = validateUserHandle(userHandle);
-  if (validationError) {
-    errorElement.textContent = validationError;
-    errorElement.style.color = "red";
-    return;
-  }
-
-  // Verifica se o userHandle já está em uso
-  const isAvailable = await isUserHandleAvailable(userHandle);
-  if (!isAvailable) {
-    errorElement.textContent = "Este userHandle já está em uso. Escolha outro.";
-    errorElement.style.color = "red";
-  } else {
-    errorElement.textContent = "UserHandle disponível!";
-    errorElement.style.color = "green";
-  }
-});
-
-// Mostrar o botão de edição apenas para o usuário logado
 auth.onAuthStateChanged((user) => {
   if (user) {
     document.getElementById('editProfileButton').style.display = 'block';
-    loadUserData(); // Carrega os dados do usuário ao logar
+    loadUserData();
   } else {
     document.getElementById('editProfileButton').style.display = 'none';
   }
 });
 
-// Observa o estado de autenticação do usuário
-auth.onAuthStateChanged((user) => {
+function loadUserData() {
+  const user = auth.currentUser;
   if (user) {
-    loadUserData();
-  } else {
-    console.log("Usuário não está logado.");
+    db.collection('users').doc(user.uid).get()
+      .then((doc) => {
+        if (doc.exists) {
+          const userData = doc.data();
+          document.getElementById('profileName').textContent = userData.username || '';
+          document.getElementById('userHandle').textContent = `@${userData.userHandle}`;
+          document.getElementById('bioText').textContent = userData.bio || '';
+          document.getElementById('profileImage').src = userData.profilePicture || '';
+        }
+      })
+      .catch((error) => {
+        console.log("Erro ao carregar dados:", error);
+      });
   }
-});
+}
   </script>
 </body>
 </html>

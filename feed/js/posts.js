@@ -201,7 +201,7 @@ const renderTweet = (tweet) => {
       <img src="${tweet.profilePicture || 'https://i.pinimg.com/736x/62/01/0d/62010d848b790a2336d1542fcda51789.jpg'}" 
            class="tweet__profile-pic" 
            alt="Foto do perfil">
-      <a href="/Perfil/?user=${tweet.userHandle}" class="tweet__username">${tweet.username}</a>
+      <a href="./perfil.html?user=${tweet.userHandle}" class="tweet__username">${tweet.username}</a>
             ${tweet.verified === true ? `
         <svg class="verified-icon" viewBox="0 0 24 24">
           <!-- Ícone de verificação -->
@@ -259,7 +259,7 @@ const getPlatform = () => {
     }
     return 'Android | DK';
   } else if (/linux/i.test(userAgent)) {
-    return 'Android | DKLite';
+    return 'Linux | DKWeb';
   } else {
     return 'Outro';
   }

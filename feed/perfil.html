@@ -278,7 +278,6 @@ async function loadProfileByUserHandle(userHandle) {
       document.getElementById('profileImage').src = userData.profilePicture || 'https://via.placeholder.com/100';
 
       updateFollowerCount(userId);
-      loadUserTweets(userId);
 
       const currentUser = auth.currentUser;
       if (currentUser && currentUser.uid === userId) {

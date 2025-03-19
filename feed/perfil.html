@@ -78,6 +78,16 @@
       height: 100vh;
     }
 
+    @media (max-width: 1028px) {
+
+    * {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+     }
+    }
+
     /* Conteúdo principal */
     .main-content {
       width: 100%;
@@ -257,36 +267,53 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// Variável global para armazenar o ID do usuário do perfil que está sendo visualizado
+let profileUserId = null;
+
 // Função para extrair o userhandle da URL
 function getUserHandleFromURL() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('user');
 }
 
-
-// Função para carregar os dados do perfil
+// Função para carregar os dados do perfil pelo userHandle
 async function loadProfileByUserHandle(userHandle) {
   try {
-    const querySnapshot = await db.collection('users').where('userHandle', '==', userHandle).get();
+    const querySnapshot = await db.collection('users')
+      .where('userHandle', '==', userHandle)
+      .get();
+      
     if (!querySnapshot.empty) {
-      const userData = querySnapshot.docs[0].data();
-      const userId = querySnapshot.docs[0].id;
+      // Pega os dados do primeiro documento encontrado
+      const doc = querySnapshot.docs[0];
+      profileUserId = doc.id; // Armazena o ID do usuário que está sendo visualizado
+      const userData = doc.data();
 
+      // Atualiza a página com as informações do perfil
       document.getElementById('profileName').textContent = userData.username || 'Nome não definido';
       document.getElementById('userHandle').textContent = `@${userData.userHandle}`;
       document.getElementById('bioText').textContent = userData.bio || 'Biografia não definida';
       document.getElementById('profileImage').src = userData.profilePicture || 'https://via.placeholder.com/100';
 
-      updateFollowerCount(userId);
+      // Atualiza contagem de seguidores e carrega os tweets
+      updateFollowerCount(profileUserId);
+      loadUserTweets(profileUserId);
 
+      // Configura os botões: se o perfil exibido for do usuário logado, mostra o botão de editar; caso contrário, mostra o botão de seguir
       const currentUser = auth.currentUser;
-      if (currentUser && currentUser.uid === userId) {
+      if (currentUser && currentUser.uid === profileUserId) {
         document.getElementById('editProfileButton').style.display = 'block';
         document.getElementById('followButton').style.display = 'none';
       } else {
         document.getElementById('editProfileButton').style.display = 'none';
         document.getElementById('followButton').style.display = 'block';
-        checkIfFollowing(currentUser.uid, userId);
+        if (currentUser) {
+          checkIfFollowing(currentUser.uid, profileUserId);
+        } else {
+          // Caso não esteja logado, o botão segue com a mensagem padrão
+          document.getElementById('followButton').textContent = "Seguir";
+          document.getElementById('followButton').classList.remove('unfollow');
+        }
       }
     } else {
       console.log("Nenhum usuário encontrado com esse userHandle.");
@@ -296,39 +323,57 @@ async function loadProfileByUserHandle(userHandle) {
   }
 }
 
-// Função para atualizar contagem de seguidores
+// Função para atualizar a contagem de seguidores
 async function updateFollowerCount(userId) {
   try {
-    const followersSnapshot = await db.collection('followers').doc(userId).collection('userFollowers').get();
+    const followersSnapshot = await db.collection('followers')
+      .doc(userId)
+      .collection('userFollowers')
+      .get();
     document.getElementById('followerCount').textContent = followersSnapshot.size;
   } catch (error) {
     console.error("Erro ao carregar seguidores:", error);
   }
 }
 
-// Função para verificar se está seguindo
+// Função para verificar se o usuário logado já está seguindo o perfil em questão
 async function checkIfFollowing(currentUserId, profileUserId) {
   try {
-    const followDoc = await db.collection('followers').doc(profileUserId).collection('userFollowers').doc(currentUserId).get();
+    const followDoc = await db.collection('followers')
+      .doc(profileUserId)
+      .collection('userFollowers')
+      .doc(currentUserId)
+      .get();
     const followButton = document.getElementById('followButton');
-    followButton.textContent = followDoc.exists ? "Deixar de seguir" : "Seguir";
-    followButton.classList.toggle('unfollow', followDoc.exists);
+    if (followDoc.exists) {
+      followButton.textContent = "Deixar de seguir";
+      followButton.classList.add('unfollow');
+    } else {
+      followButton.textContent = "Seguir";
+      followButton.classList.remove('unfollow');
+    }
   } catch (error) {
     console.error("Erro ao verificar se está seguindo:", error);
   }
 }
 
-// Função para seguir/deixar de seguir
+// Função para seguir ou deixar de seguir
 async function toggleFollow(currentUserId, profileUserId) {
-  const followRef = db.collection('followers').doc(profileUserId).collection('userFollowers').doc(currentUserId);
-  
+  const followRef = db.collection('followers')
+    .doc(profileUserId)
+    .collection('userFollowers')
+    .doc(currentUserId);
+    
   try {
     const followDoc = await followRef.get();
     if (followDoc.exists) {
+      // Se já estiver seguindo, remove o registro
       await followRef.delete();
     } else {
+      // Se não estiver seguindo, adiciona o registro com a data/hora atual
       await followRef.set({ timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     }
+    // Atualiza a contagem de seguidores e o estado do botão
     updateFollowerCount(profileUserId);
     checkIfFollowing(currentUserId, profileUserId);
   } catch (error) {
@@ -336,27 +381,29 @@ async function toggleFollow(currentUserId, profileUserId) {
   }
 }
 
-// Event Listeners
+// Event Listener para o botão de seguir/deixar de seguir
 document.getElementById('followButton').addEventListener('click', () => {
   const currentUser = auth.currentUser;
-  const profileUserId = document.getElementById('userHandle').textContent.replace('@', '');
-  
-  if (currentUser) {
-    toggleFollow(currentUser.uid, profileUserId);
-  } else {
+  if (!currentUser) {
     alert("Você precisa estar logado para seguir alguém.");
+    return;
   }
+  // Usa a variável profileUserId, que foi definida ao carregar o perfil
+  toggleFollow(currentUser.uid, profileUserId);
 });
 
+// Event Listener para o botão de editar perfil
 document.getElementById('editProfileButton').addEventListener('click', () => {
   document.getElementById('editProfileModal').style.display = 'flex';
   populateEditForm();
 });
 
+// Event Listener para cancelar a edição
 document.getElementById('cancelEditButton').addEventListener('click', () => {
   document.getElementById('editProfileModal').style.display = 'none';
 });
 
+// Atualiza a imagem no formulário de edição quando um arquivo é selecionado
 document.getElementById('imageUpload').addEventListener('change', function(event) {
   const file = event.target.files[0];
   if (file) {
@@ -368,6 +415,7 @@ document.getElementById('imageUpload').addEventListener('change', function(event
   }
 });
 
+// Submissão do formulário de edição de perfil
 document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const user = auth.currentUser;
@@ -398,6 +446,7 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
       await db.collection('users').doc(user.uid).update(updatedData);
       alert('Perfil atualizado com sucesso!');
       document.getElementById('editProfileModal').style.display = 'none';
+      // Recarrega o perfil com o novo userHandle
       loadProfileByUserHandle(newUserHandle);
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
@@ -406,7 +455,7 @@ document.getElementById('editProfileForm').addEventListener('submit', async (e) 
   }
 });
 
-// Funções auxiliares
+// Função para validar o userHandle
 function validateUserHandle(userHandle) {
   const regex = /^[a-zA-Z0-9_-]+$/;
   if (userHandle.length < 3 || userHandle.length > 15) return "UserHandle deve ter entre 3-15 caracteres.";
@@ -414,9 +463,12 @@ function validateUserHandle(userHandle) {
   return null;
 }
 
+// Função para verificar se o userHandle está disponível
 async function isUserHandleAvailable(userHandle) {
   try {
-    const querySnapshot = await db.collection('users').where('userHandle', '==', userHandle).get();
+    const querySnapshot = await db.collection('users')
+      .where('userHandle', '==', userHandle)
+      .get();
     return querySnapshot.empty;
   } catch (error) {
     console.error("Erro ao verificar userHandle:", error);
@@ -424,6 +476,7 @@ async function isUserHandleAvailable(userHandle) {
   }
 }
 
+// Função para preencher o formulário de edição com os dados atuais do usuário
 function populateEditForm() {
   const user = auth.currentUser;
   if (user) {
@@ -443,21 +496,41 @@ function populateEditForm() {
   }
 }
 
-// Inicialização
+// Função fictícia para carregar os tweets do usuário (implemente conforme sua necessidade)
+function loadUserTweets(userId) {
+  // Sua lógica para carregar os tweets do usuário
+  console.log("Carregando tweets para o usuário:", userId);
+}
+
+// Inicialização da página
 window.onload = () => {
   const userHandle = getUserHandleFromURL();
-  userHandle ? loadProfileByUserHandle(userHandle) : console.log("Nenhum userHandle na URL.");
+  if (userHandle) {
+    loadProfileByUserHandle(userHandle);
+  } else {
+    console.log("Nenhum userHandle na URL.");
+  }
 };
 
 auth.onAuthStateChanged((user) => {
   if (user) {
-    document.getElementById('editProfileButton').style.display = 'block';
+    // Se o usuário logado estiver visualizando seu próprio perfil, mostra o botão de editar
+    if (user.uid === profileUserId) {
+      document.getElementById('editProfileButton').style.display = 'block';
+      document.getElementById('followButton').style.display = 'none';
+    } else {
+      document.getElementById('editProfileButton').style.display = 'none';
+      document.getElementById('followButton').style.display = 'block';
+      checkIfFollowing(user.uid, profileUserId);
+    }
+    // Carrega outros dados do usuário logado, se necessário
     loadUserData();
   } else {
     document.getElementById('editProfileButton').style.display = 'none';
   }
 });
 
+// Função para carregar dados do usuário logado (se necessário)
 function loadUserData() {
   const user = auth.currentUser;
   if (user) {
@@ -465,14 +538,12 @@ function loadUserData() {
       .then((doc) => {
         if (doc.exists) {
           const userData = doc.data();
-          document.getElementById('profileName').textContent = userData.username || '';
-          document.getElementById('userHandle').textContent = `@${userData.userHandle}`;
-          document.getElementById('bioText').textContent = userData.bio || '';
-          document.getElementById('profileImage').src = userData.profilePicture || '';
+          // Atualize informações adicionais na interface, se necessário
+          console.log("Dados do usuário logado:", userData);
         }
       })
       .catch((error) => {
-        console.log("Erro ao carregar dados:", error);
+        console.error("Erro ao carregar dados do usuário logado:", error);
       });
   }
 }

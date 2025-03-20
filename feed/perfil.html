@@ -538,13 +538,28 @@ function loadUserData() {
       .then((doc) => {
         if (doc.exists) {
           const userData = doc.data();
-          // Atualize informações adicionais na interface, se necessário
           console.log("Dados do usuário logado:", userData);
+
+          // Atualiza a UI com os dados do usuário logado
+          document.getElementById('profileName').textContent = userData.username || 'Nome não definido';
+          document.getElementById('userHandle').textContent = `@${userData.userHandle}`;
+          document.getElementById('bioText').textContent = userData.bio || 'Biografia não definida';
+          document.getElementById('profileImage').src = userData.profilePicture || 'https://via.placeholder.com/100';
+
+          // Atualiza a contagem de seguidores
+          updateFollowerCount(user.uid);
+
+          // Carrega os tweets do usuário
+          loadUserTweets(user.uid);
+        } else {
+          console.error("Documento do usuário não encontrado.");
         }
       })
       .catch((error) => {
         console.error("Erro ao carregar dados do usuário logado:", error);
       });
+  } else {
+    console.log("Nenhum usuário logado.");
   }
 }
   </script>
